@@ -6,7 +6,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <ImageBackground source={require('./assets/back_image.png')} style={styles.gameBackground}>
-        
+        <Text>setup test</Text>
       </ImageBackground>
     </View>
   );
