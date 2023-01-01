@@ -11,20 +11,30 @@ export default function App() {
   const rightX = SCREEN_WIDTH / 4 * 3 - 75/2;
   const playerHeadY = SCREEN_HEIGHT / 3 * 2;
 
-  const [vis, setVis] = useState([true, false]);
+  const [vis, setVis] = useState([false, false]);
   const [onStartModal, setStartModalVis] = useState(true);
+  const [gameRunning, setGameRunning] = useState(false);
   
   const onLeftPress = () => {
-    setVis([true, false]);
+    if (gameRunning)
+      setVis([true, false]);
   };
   const onRightPress = () => {
-    setVis([false, true]);
+    if (gameRunning)
+      setVis([false, true]);
+  };
+  const startGame = () => {
+    setStartModalVis(false);
+    setGameRunning(true);
+    setVis([true, false]);
   };
 
   return (
     <ImageBackground source={require('./assets/back_image.png')} style={styles.container}>
-      <Modal style={styles.startScreen} animationType='slide' visible={onStartModal}>
-
+      <Modal animationType='slide' visible={onStartModal} transparent={true}>
+        <TouchableOpacity style={styles.startButton} onPress={startGame}>
+          <Text style={styles.startText}>Start</Text>
+        </TouchableOpacity>
       </Modal>
       <AnimatedSprite
         sprite={knightSprite}
@@ -82,7 +92,19 @@ const styles = StyleSheet.create({
     opacity: 0.0,
     flexDirection: 'row',
   },
-  startScreen: {
-
+  startButton: {
+    marginTop: 500,
+    marginHorizontal: 124,
+    paddingVertical: 16,
+    borderWidth: 2,
+    borderColor: '#d0ffec',
+    borderRadius: 16,
+    backgroundColor: '#009f0e',
+    alignItems: 'center',
+  },
+  startText: {
+    color: '#d0ffec',
+    fontWeight: 'bold',
+    fontSize: 20,
   },
 });
