@@ -3,17 +3,22 @@ import { StyleSheet, Text, View, ImageBackground, Dimensions, TouchableOpacity, 
 import { GameEngine } from 'react-native-game-engine';
 import AnimatedSprite from 'react-native-animated-sprite';
 import knightSprite from './components/knightSprite';
+import { CountFrames, MoveSwords } from './components/systems';
+import { Swords } from './components/renderers';
 
 export default function App() {
 
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-  const leftX = SCREEN_WIDTH / 4 - 75/2;
-  const rightX = SCREEN_WIDTH / 4 * 3 - 75/2;
-  const playerHeadY = SCREEN_HEIGHT / 3 * 2;
+  const LEFT_X = SCREEN_WIDTH / 4 - 75/2;
+  const RIGHT_X = SCREEN_WIDTH / 4 * 3 - 75/2;
+  const PLAYER_HEAD_Y = SCREEN_HEIGHT / 3 * 2;
 
   const [vis, setVis] = useState([false, false]);
   const [onStartModal, setStartModalVis] = useState(true);
+  const [onGameOverModal, setGameOverVis] = useState(false);
   const [gameRunning, setGameRunning] = useState(false);
+  
+  const [score, setScore] = useState(0);
   
   const onLeftPress = () => {
     if (gameRunning)
@@ -31,18 +36,22 @@ export default function App() {
 
   return (
     <ImageBackground source={require('./assets/back_image.png')} style={styles.container}>
+      <Text style={styles.scoreText}>{score}</Text>
       <Modal animationType='slide' visible={onStartModal} transparent={true}>
         <TouchableOpacity style={styles.startButton} onPress={startGame}>
           <Text style={styles.startText}>Start</Text>
         </TouchableOpacity>
+      </Modal>
+      <Modal animationType='slide' visible={onGameOverModal} transparent={true}>
+        
       </Modal>
       <AnimatedSprite
         sprite={knightSprite}
         animationFrameIndex={knightSprite.animationIndex('LEFT_IDLE')}
         loopAnimation={true}
         coordinates={{
-          top: playerHeadY,
-          left: leftX,
+          top: PLAYER_HEAD_Y,
+          left: LEFT_X,
         }}
         size={{
           width: 75,
@@ -55,8 +64,8 @@ export default function App() {
         animationFrameIndex={knightSprite.animationIndex('RIGHT_IDLE')}
         loopAnimation={true}
         coordinates={{
-          top: playerHeadY,
-          left: rightX,
+          top: PLAYER_HEAD_Y,
+          left: RIGHT_X,
         }}
         size={{
           width: 75,
@@ -64,6 +73,13 @@ export default function App() {
         }}
         visible={vis[1]}
       />
+      <GameEngine
+        systems={[CountFrames]}
+        entities={{
+          
+        }}>
+        
+      </GameEngine>
       <View style={styles.touchRegions}>
         <TouchableOpacity activeOpacity={0.0} onPress={onLeftPress}>
           <Text>
@@ -106,5 +122,11 @@ const styles = StyleSheet.create({
     color: '#d0ffec',
     fontWeight: 'bold',
     fontSize: 20,
+  },
+  scoreText: {
+    color: '#000',
+    marginTop: 128,
+    fontWeight: 'bold',
+    fontSize: 40,
   },
 });
