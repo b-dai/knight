@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { StyleSheet, Text, View, ImageBackground, Dimensions, TouchableOpacity, Modal } from 'react-native';
 import { GameEngine } from 'react-native-game-engine';
 import AnimatedSprite from 'react-native-animated-sprite';
 import knightSprite from './components/knightSprite';
-import { CountFrames, MoveSwords } from './components/systems';
+import { MoveSwords } from './components/systems';
 import { Swords } from './components/renderers';
 
 export default function App() {
@@ -18,6 +18,8 @@ export default function App() {
   const [onGameOverModal, setGameOverVis] = useState(false);
   const [gameRunning, setGameRunning] = useState(false);
   
+  const SPEED = 2;
+  const engine = useRef(null);
   const [score, setScore] = useState(0);
   
   const onLeftPress = () => {
@@ -74,9 +76,18 @@ export default function App() {
         visible={vis[1]}
       />
       <GameEngine
-        systems={[CountFrames]}
+        style={styles.engine}
+        ref={engine}
+        systems={[MoveSwords]}
         entities={{
-          
+          left: { position: [0, 0], yspeed: SPEED, renderer: <Swords/>},
+          right: { position: [540, 0], yspeed: SPEED, renderer: <Swords/>}
+        }}
+        running={gameRunning}
+        onEvent={(e) => {
+          if (e == "GAME_OVER") {
+            setGameRunning(false);
+          }
         }}>
         
       </GameEngine>
@@ -124,9 +135,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   scoreText: {
+    flex: null,
     color: '#000',
     marginTop: 128,
     fontWeight: 'bold',
     fontSize: 40,
+  },
+  engine: {
+    flex: 1,
   },
 });

@@ -1,26 +1,15 @@
-const SPEED = 2;
 var framesPassed = 0;
 
-const CountFrames = () => {
-    framesPassed++;
-    console.log(framesPassed);
-};
+const MoveSwords = (entities, { events, dispatch }) => {
 
-const MoveSwords = (entities, { touches }) => {
+    framesPassed++;
   
-    // entities.forEach(swords => {
-    //   if (swords && swords.position) {
-    //     swords.position = [
-    //       swords.position[0],
-    //       swords.position[1] + SPEED
-    //     ];
-    //   }
-    // });
-    // entities[1].position = [swords.position[0],
-    //       swords.position[1] + SPEED];
+    const leftSwords = entities.left;
+    const rightSwords = entities.right;
+    leftSwords.position[1] += leftSwords.yspeed;
+    rightSwords.position[1] += rightSwords.yspeed;
   
     return entities;
   };
   
-  export { CountFrames };
   export { MoveSwords };
