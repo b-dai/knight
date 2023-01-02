@@ -3,24 +3,39 @@ import { StyleSheet, Text, View, ImageBackground, Dimensions, TouchableOpacity, 
 import { GameEngine } from 'react-native-game-engine';
 import AnimatedSprite from 'react-native-animated-sprite';
 import knightSprite from './components/knightSprite';
-import { MoveSwords } from './components/systems';
-import { Swords } from './components/renderers';
+import { Swords } from './components/swords';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const LEFT_X = SCREEN_WIDTH / 4 - 75/2;
+const RIGHT_X = SCREEN_WIDTH / 4 * 3 - 75/2;
+const PLAYER_HEAD_Y = SCREEN_HEIGHT / 3 * 2;
 
 export default function App() {
-
-  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-  const LEFT_X = SCREEN_WIDTH / 4 - 75/2;
-  const RIGHT_X = SCREEN_WIDTH / 4 * 3 - 75/2;
-  const PLAYER_HEAD_Y = SCREEN_HEIGHT / 3 * 2;
 
   const [vis, setVis] = useState([false, false]);
   const [onStartModal, setStartModalVis] = useState(true);
   const [onGameOverModal, setGameOverVis] = useState(false);
   const [gameRunning, setGameRunning] = useState(false);
   
-  const SPEED = 2;
+  const SPEED = 5;
+  const SCORE_MULT = 0.3;
   const engine = useRef(null);
   const [score, setScore] = useState(0);
+
+  var framesPassed = 0;
+
+  function GameLoop (entities, { events, dispatch }) {
+
+    framesPassed++;
+    setScore(Math.floor(framesPassed * SCORE_MULT));
+  
+    const leftSwords = entities.left;
+    //const rightSwords = entities.right;
+    leftSwords.position[1] += leftSwords.yspeed;
+    //rightSwords.position[1] += rightSwords.yspeed;
+  
+    return entities;
+  }
   
   const onLeftPress = () => {
     if (gameRunning)
@@ -35,17 +50,24 @@ export default function App() {
     setGameRunning(true);
     setVis([true, false]);
   };
+  const restartGame = () => {
+    setVis([true, false]);
+    setGameOverVis(false);
+    setGameRunning(true);
+  };
 
   return (
     <ImageBackground source={require('./assets/back_image.png')} style={styles.container}>
-      <Text style={styles.scoreText}>{score}</Text>
+      {!onStartModal && <Text style={styles.scoreText}>{score}</Text>}
       <Modal animationType='slide' visible={onStartModal} transparent={true}>
         <TouchableOpacity style={styles.startButton} onPress={startGame}>
           <Text style={styles.startText}>Start</Text>
         </TouchableOpacity>
       </Modal>
       <Modal animationType='slide' visible={onGameOverModal} transparent={true}>
-        
+        <TouchableOpacity style={styles.startButton} onPress={restartGame}>
+          <Text style={styles.startText}>Play Again</Text>
+        </TouchableOpacity>
       </Modal>
       <AnimatedSprite
         sprite={knightSprite}
@@ -78,26 +100,25 @@ export default function App() {
       <GameEngine
         style={styles.engine}
         ref={engine}
-        systems={[MoveSwords]}
+        systems={[GameLoop]}
         entities={{
-          left: { position: [0, 0], yspeed: SPEED, renderer: <Swords/>},
-          right: { position: [540, 0], yspeed: SPEED, renderer: <Swords/>}
+          left: { position: [-180, -100], yspeed: SPEED, renderer: <Swords/>},
         }}
         running={gameRunning}
         onEvent={(e) => {
           if (e == "GAME_OVER") {
             setGameRunning(false);
+            setVis([false, false]);
+            setGameOverVis(true);
           }
-        }}>
-        
-      </GameEngine>
+        }}/>
       <View style={styles.touchRegions}>
-        <TouchableOpacity activeOpacity={0.0} onPress={onLeftPress}>
+        <TouchableOpacity style={styles.leftRegion} activeOpacity={0.0} onPress={onLeftPress}>
           <Text>
             .                                                                                                                                                   .
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.0} onPress={onRightPress}>
+        <TouchableOpacity style={styles.rightRegion} activeOpacity={0.0} onPress={onRightPress}>
           <Text>
             .                                                                                                                                                   .
           </Text>
@@ -115,9 +136,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   touchRegions: {
-    flex: 1,
+    flex: null,
     opacity: 0.0,
     flexDirection: 'row',
+    position: "absolute",
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+  },
+  leftRegion: {
+    flex: 1,
+    backgroundColor: "#f00",
+  },
+  rightRegion: {
+    flex: 1,
+    backgroundColor: "#0f0",
   },
   startButton: {
     marginTop: 500,
@@ -137,9 +169,10 @@ const styles = StyleSheet.create({
   scoreText: {
     flex: null,
     color: '#000',
-    marginTop: 128,
+    top: 128,
     fontWeight: 'bold',
     fontSize: 40,
+    position: "absolute",
   },
   engine: {
     flex: 1,
