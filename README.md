@@ -12,3 +12,7 @@ Built using JavaScript and React framework for native iOS and Android platforms.
   <img src="https://github.com/b-dai/knight/blob/main/midGame.PNG" height="400" />
   <img src="https://github.com/b-dai/knight/blob/main/gameOver.PNG" height="400" />
 </p>
+
+## How to Run
+Follow the instructions at https://reactnative.dev/docs/environment-setup to install React Native and Expo Go.
+Clone this repo and cd into it, then run 'expo start --tunnel'.
