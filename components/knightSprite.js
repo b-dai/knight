@@ -1,3 +1,4 @@
+// Supply knight character animation assets and frames
 const knightSprite = {
     name: "knight",
     size: { width: 200, height: 200 },

@@ -1,6 +1,7 @@
 import React from "react";
 import { Image } from "react-native";
 
+// Supply swords as image element to game engine renders
 function Swords ({position}) {
     return (
         <Image source={require('../assets/swords.png')}

@@ -5,52 +5,99 @@ import AnimatedSprite from 'react-native-animated-sprite';
 import knightSprite from './components/knightSprite';
 import { Swords } from './components/swords';
 
+// get device screen dimensions
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const LEFT_X = SCREEN_WIDTH / 4 - 75/2;
 const RIGHT_X = SCREEN_WIDTH / 4 * 3 - 75/2;
 const PLAYER_HEAD_Y = SCREEN_HEIGHT / 3 * 2;
 
+// global game variables
+var framesPassed = 0;
+var curSpeed = 5;
+
 export default function App() {
 
+  // game state variables
   const [vis, setVis] = useState([false, false]);
   const [onStartModal, setStartModalVis] = useState(true);
   const [onGameOverModal, setGameOverVis] = useState(false);
   const [gameRunning, setGameRunning] = useState(false);
   
-  const SPEED = 5;
+  // game engine calculation variables
+  const BASE_SPEED = 5;
   const SCORE_MULT = 0.3;
   const engine = useRef(null);
   const [score, setScore] = useState(0);
 
-  var framesPassed = 0;
-
+  // game engine logic (happens each frame)
   function GameLoop (entities, { events, dispatch }) {
 
+    // update frames and score
     framesPassed++;
     setScore(Math.floor(framesPassed * SCORE_MULT));
   
+    // update swords falling
     const leftSwords = entities.left;
-    //const rightSwords = entities.right;
-    leftSwords.position[1] += leftSwords.yspeed;
-    //rightSwords.position[1] += rightSwords.yspeed;
+    const rightSwords = entities.right;
+    leftSwords.position[1] += curSpeed;
+    rightSwords.position[1] += curSpeed;
+
+    // detect swords collision with player
+    const leftBottomY = leftSwords.position[1] + 100;
+    const rightBottomY = rightSwords.position[1] + 100;
+    if (vis[0] && leftBottomY > PLAYER_HEAD_Y && leftSwords.position[1] < PLAYER_HEAD_Y+75) {
+      dispatch("GAME_OVER");
+    }
+    if (vis[1] && rightBottomY > PLAYER_HEAD_Y && rightSwords.position[1] < PLAYER_HEAD_Y+75) {
+      dispatch("GAME_OVER");
+    }
+
+    // respawn swords once fallen off screen
+    if (leftSwords.position[1] > SCREEN_HEIGHT && rightSwords.position[1] > SCREEN_HEIGHT) {
+      if (Math.random() > 0.5) {
+        leftSwords.position[1] = -100;
+      } else {
+        rightSwords.position[1] = -100;
+      }
+      // handle increasing game difficulty
+      const diffFrac = (framesPassed) / (3500 / SCORE_MULT);
+      const calcNewSpeed = BASE_SPEED * 7 * diffFrac;
+      curSpeed = calcNewSpeed >= BASE_SPEED ? calcNewSpeed : BASE_SPEED;
+    }
   
     return entities;
   }
   
+  // when left side screen pressed
   const onLeftPress = () => {
     if (gameRunning)
       setVis([true, false]);
   };
+
+  // when right side screen pressed
   const onRightPress = () => {
     if (gameRunning)
       setVis([false, true]);
   };
+
+  // on initial Start clicked
   const startGame = () => {
     setStartModalVis(false);
     setGameRunning(true);
     setVis([true, false]);
   };
+  
+  // on Play Again clicked
   const restartGame = () => {
+    const toSwap = Math.random() > 0.5 ?
+      {left: { position: [-180, -100], renderer: <Swords/>},
+      right: { position: [5, -1000], renderer: <Swords/>}} :
+      {left: { position: [-180, -1000], renderer: <Swords/>},
+      right: { position: [5, -100], renderer: <Swords/>}};
+    engine.current.swap(toSwap);
+    framesPassed = 0;
+    curSpeed = BASE_SPEED;
+    setScore(0);
     setVis([true, false]);
     setGameOverVis(false);
     setGameRunning(true);
@@ -102,7 +149,8 @@ export default function App() {
         ref={engine}
         systems={[GameLoop]}
         entities={{
-          left: { position: [-180, -100], yspeed: SPEED, renderer: <Swords/>},
+          left: { position: [-180, -100], renderer: <Swords/>},
+          right: { position: [5, -1000], renderer: <Swords/>}
         }}
         running={gameRunning}
         onEvent={(e) => {
